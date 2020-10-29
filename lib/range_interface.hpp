@@ -3,21 +3,23 @@
 // try concepts... , no cpp20...
 
 #include <iterator>
-template<typename T>
-class interface_range
-{
-	T store;
-public:
-	void insert(int v)
+namespace handmade {
+	template<typename T>
+	class interface_range
 	{
-		store.insert(v);
-	}
-	int getDistance(int lhs, int rhs) const
-	{
-		auto l =  store.lower_bound(lhs);
-		auto r = store.upper_bound(rhs);
-		return std::distance(l,r);
-	}
+		T store;
+	public:
+		void insert(int v)
+		{
+			store.insert(v);
+		}
+		int getDistance(int lhs, int rhs) const
+		{
+			auto l = store.lower_bound(lhs);
+			auto r = store.upper_bound(rhs);
+			return std::distance(l, r);
+		}
+	};
 };
 
 
