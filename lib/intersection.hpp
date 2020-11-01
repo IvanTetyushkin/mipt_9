@@ -6,6 +6,11 @@
 namespace handmade
 {
 	template<typename T>
+	bool almostEqual(T a, T b, T pol = 1e-3)
+	{
+		return std::abs(a - b) < pol;
+	}
+	template<typename T>
 class Interval
 {
 	T left;
@@ -25,6 +30,7 @@ public:
 template<typename T>
 class Point
 {
+protected:
 	T x;
 	T y;
 	T z;
@@ -40,9 +46,9 @@ public:
 	bool equal(const Point& other) const
 	{
 		constexpr T tolerance = 1e-3;
-		return (std::abs(x - other.x) < tolerance) &&
-			(std::abs(y - other.y) < tolerance) &&
-			(std::abs(z - other.z) < tolerance);
+		return (almostEqual(x, other.x, tolerance)) &&
+			(almostEqual(y, other.y, tolerance)) &&
+			(almostEqual(z, other.z, tolerance));
 	}
 	Point operator-() const
 	{
@@ -62,67 +68,7 @@ public:
 		z -= p.z;
 		return *this;
 	}
-	static T dot(const Point& p1, const Point& p2)
-	{
-		return p1.x * p2.x + p1.y * p2.y + p1.z * p2.z;
-	}
-	T length() const
-	{
-		return std::sqrt(dot(*this, *this));
-	}
-	T project(const Point& p) const
-	{
-		//assert(length() == 1 && "Error projection non-one vector");
-		return dot(*this, p);
-	}
 
-	Point& normilize()
-	{
-		T coeff = length();
-		x /= coeff;
-		y /= coeff;
-		z /= coeff;
-		return *this;
-	}
-	static Point cross(const Point& p1, const Point& p2)
-	{
-		return Point{p1.y * p2.z - p1.z * p2.y, p1.z* p2.x - p1.x*p2.z, p1.x * p2.y - p1.y * p2.x};
-	}
-	static int isParallel(const Point& p1, const Point& p2)
-	{
-		// zero case
-		bool x_aces = p1.x == 0 && p2.x != 0;
-		bool y_aces = p1.y == 0 && p2.y != 0;
-		bool z_aces = p1.z == 0 && p2.z != 0;
-		if (x_aces || y_aces || z_aces)
-			return 0;// not parrallel at all
-		T x_coeff = 0;
-		T y_coeff = 0;
-		T z_coeff = 0;
-		if(p2.x != 0)
-			x_coeff = p1.x / p2.x;
-		if(p2.y != 0)
-			y_coeff = p1.y / p2.y;
-		if(p2.y != 0)
-			z_coeff = p1.z / p2.z;
-		if (x_coeff == 0 && y_coeff == 0 && z_coeff == 0)
-			return 1;// well, you give the same points... (0,0,0)
-		T tmp_coeff = x_coeff != 0 ? x_coeff :
-			y_coeff != 0 ? y_coeff : z_coeff; // well one of them not null
-		assert(tmp_coeff != 0 && "isParrallel logic error");
-		bool result = true;
-		// may be case with x = 0...
-		result &= (tmp_coeff == (x_coeff != 0 ? x_coeff : tmp_coeff));
-		result &= (tmp_coeff == (y_coeff != 0 ? y_coeff : tmp_coeff));
-		result &= (tmp_coeff == (z_coeff != 0 ? z_coeff : tmp_coeff));
-
-		if (!result)
-			return 0;
-		if (tmp_coeff > 0)
-			return 1;// they are one side
-		else
-			return -1;// they are other side
-	}
 };
 template<typename T>
 Point<T> operator+(const Point<T>& p1, const Point<T>& p2)
@@ -148,49 +94,87 @@ bool operator!=(const Point<T>& p1, const Point<T>& p2)
 }
 //in fact I do not need it, but for look...
 template<typename T>
-class Vector
+class Vector final : public Point<T>
 {
-	Point<T> val;
 	using PointT = Point<T>;
 public:
 	Vector(const PointT& from, const PointT& to) :
-		val(to - from) {};
+		Point<T>(to - from) {};
 	Vector(const PointT& p) :
-		val(p) {};
-	bool equal(const Vector& v) const
+		Point<T>(p) {};
+	Vector(T x, T y, T z) :
+		Point<T>(x, y, z) {};
+
+	static T dot(const Vector& lhs, const Vector& rhs)
 	{
-		return (val == v.val);
+		return lhs.x * rhs.x + lhs.y * rhs.y + lhs.z * rhs.z;
 	}
-	static T dot(const Vector& f, const Vector& s)
+	static Vector cross(const Vector& p1, const Vector& p2)
 	{
-		return PointT::dot(f.val, s.val);
-	}
-	static Vector cross(const Vector& f, const Vector& s)
-	{
-		return PointT::cross(f.val, s.val);
+		return Point{p1.y * p2.z - p1.z * p2.y, p1.z* p2.x - p1.x*p2.z, p1.x * p2.y - p1.y * p2.x};
 	}
 	T getLen() const
 	{
-		return val.length();
+		return std::sqrt(dot(*this, *this));
 	}
+	// not need 
+#if 0
 	Vector& normilize()
 	{
-		val.normilize();
+		T coeff = getLen();
+		x /= coeff;
+		y /= coeff;
+		z /= coeff;
 		return *this;
 	}
-	static int isParallel(const Vector& v1, const Vector& v2)
+#endif
+	static int isParallel(const Vector& lhs, const Vector& rhs)
 	{
-		return PointT::isParallel(v1.val, v2.val);
+		{
+			// zero case in div
+			bool x_aces = lhs.x == 0 && rhs.x != 0;
+			bool y_aces = lhs.y == 0 && rhs.y != 0;
+			bool z_aces = lhs.z == 0 && rhs.z != 0;
+			if (x_aces || y_aces || z_aces)
+				return 0;// not parrallel at all
+		}
+		T x_coeff = 0;
+		T y_coeff = 0;
+		T z_coeff = 0;
+		if(rhs.x != 0)
+			x_coeff = lhs.x / rhs.x;
+		if(rhs.y != 0)
+			y_coeff = lhs.y / rhs.y;
+		if(rhs.y != 0)
+			z_coeff = lhs.z / rhs.z;
+
+		if (x_coeff == 0 && y_coeff == 0 && z_coeff == 0)
+			return 1;// well, you give the same points... (0,0,0)
+		T tmp_coeff = x_coeff != 0 ? x_coeff :
+			y_coeff != 0 ? y_coeff : z_coeff; // well one of them not null
+		assert(tmp_coeff != 0 && "isParrallel logic error");
+		bool result = true;
+
+		// may be case with x = 0...
+		result &= almostEqual(tmp_coeff, x_coeff != 0 ? x_coeff : tmp_coeff);
+		result &= almostEqual(tmp_coeff, y_coeff != 0 ? y_coeff : tmp_coeff);
+		result &= almostEqual(tmp_coeff, z_coeff != 0 ? z_coeff : tmp_coeff);
+
+		if (!result)
+			return 0;
+		if (tmp_coeff > 0)
+			return 1;// they are one side
+		else
+			return -1;// they are other side
 	}
-	T project(const PointT& p) const
+	T project(const Vector& p) const
 	{
-		return val.project(p);
+		return dot(*this, p);
 	}
 };
-template<typename T>
+template<typename T, size_t size = 3>
 class Convex
 {
-	static constexpr size_t size = 3;
 	std::array<Point<T>, size> Points;
 	//Vector N;
 	using VectorT = Vector<T>;
@@ -198,8 +182,11 @@ class Convex
 
 	void validate() const
 	{
+		// for triangle not interesting
+		if constexpr (size == 3)
+			return;
 		bool check = true;
-		// trust me points different
+		// trust me points different!!
 		for (int i = 0, to = size / 4; i < to; ++i)
 		{
 			int ind0 = (size + 0) % size;
@@ -226,7 +213,25 @@ class Convex
 				right = (tmp_res > right ? tmp_res : right);
 			}
 			return IntervalT(left, right);
-		
+	}
+	VectorT getEdge(int i) const
+	{
+		assert(i < (size + 1) && "error i for edge too big");
+		int id0 = i % size;
+		int id1 = (i + 1) % size;
+		assert(Points[id0] != Points[id1] && "Same point error");
+		return VectorT{ Points[id0], Points[id1] };
+	}
+	// true -> not intersect, end 
+	// false -> intersect
+	template<size_t size1, size_t size2>
+	static bool checkAx(const Convex<T, size1>& lhs, const Convex<T, size2>& rhs, const VectorT& ax)
+	{
+		IntervalT lhs_proj = lhs.getMinMaxProjection(ax);
+		IntervalT rhs_proj = rhs.getMinMaxProjection(ax);
+		if (IntervalT::areNotIntersect(lhs_proj, rhs_proj))
+			return true;
+		return false;
 	}
 public:
 	Convex(const std::array<Point<T>, 3>& ps) :
@@ -234,72 +239,46 @@ public:
 	{
 		validate();
 	};
-
-
 	// https://www.geometrictools.com/Documentation/MethodOfSeparatingAxes.pdf
-	static bool isIntersect(const Convex& lhs, const Convex& rhs)
+	template<size_t size1, size_t size2>
+	static bool isIntersect(const Convex<T, size1>& lhs, const Convex<T, size2>& rhs)
 	{
 		VectorT lhs_N = VectorT::cross(VectorT{ lhs.Points[1], lhs.Points[0] },
-			VectorT{ lhs.Points[1], lhs.Points[2] }).normilize();
+			VectorT{ lhs.Points[1], lhs.Points[2] });
 		VectorT rhs_N = VectorT::cross(VectorT{ rhs.Points[1], rhs.Points[0] },
-			VectorT{ rhs.Points[1], rhs.Points[2] }).normilize();
-		// first
-		//assert(lhs_N.getLen() == 1 && "normale non-one");
-		//assert(rhs_N.getLen() == 1 && "normale non-one");
+			VectorT{ rhs.Points[1], rhs.Points[2] });
 
-		IntervalT lhs_proj, rhs_proj;
 		// N
-		lhs_proj = lhs.getMinMaxProjection(lhs_N);
-		rhs_proj = rhs.getMinMaxProjection(lhs_N);
-		if (IntervalT::areNotIntersect(lhs_proj, rhs_proj))
+		if (checkAx(lhs, rhs, lhs_N))
 			return false;
-		lhs_proj = lhs.getMinMaxProjection(rhs_N);
-		rhs_proj = rhs.getMinMaxProjection(rhs_N);
-		if (IntervalT::areNotIntersect(lhs_proj, rhs_proj))
+		if (checkAx(lhs, rhs, rhs_N))
 			return false;
 		// lhs.edge * rhs.edge
-		for (int i = 0; i < (lhs.size + 1); ++i)
+		for (int i = 0; i < (size1 + 1); ++i)
 		{
-			int id0 = i % lhs.size;
-			int id1 = (i + 1) % lhs.size;
-			VectorT lhs_edge{lhs.Points[id0], lhs.Points[id1]};
-			for (int j = 0; j < (rhs.size + 1); ++j)
+			VectorT lhs_edge = lhs.getEdge(i);
+			for (int j = 0; j < (size2 + 1); ++j)
 			{
-				id0 = j % rhs.size;
-				id1 = (j + 1) % rhs.size;
-				VectorT rhs_edge{rhs.Points[id0], rhs.Points[id1]};
-
-				VectorT current_ax = VectorT::cross(lhs_edge, rhs_edge).normilize();
-				lhs_proj = lhs.getMinMaxProjection(current_ax);
-				rhs_proj = rhs.getMinMaxProjection(current_ax);
-				if (IntervalT::areNotIntersect(lhs_proj, rhs_proj))
+				VectorT rhs_edge = rhs.getEdge(j);
+				VectorT current_ax = VectorT::cross(lhs_edge, rhs_edge);
+				if (checkAx(lhs, rhs, current_ax))
 					return false;
 			}
 		}
 		// lhs_N * lhs_edge
-		for (int i = 0; i < (lhs.size + 1); ++i)
+		for (int i = 0; i < (size1 + 1); ++i)
 		{
-			int id0 = i % lhs.size;
-			int id1 = (i + 1) % lhs.size;
-			VectorT lhs_edge{lhs.Points[id0], lhs.Points[id1]};
-
-			VectorT current_ax = VectorT::cross(lhs_edge, lhs_N).normilize();
-			lhs_proj = lhs.getMinMaxProjection(current_ax);
-			rhs_proj = rhs.getMinMaxProjection(current_ax);
-			if (IntervalT::areNotIntersect(lhs_proj, rhs_proj))
+			VectorT lhs_edge = lhs.getEdge(i);
+			VectorT current_ax = VectorT::cross(lhs_edge, lhs_N);
+			if (checkAx(lhs, rhs, current_ax))
 				return false;
 		}
 		// lhs_N * rhs_edge
-		for (int i = 0; i < (rhs.size + 1); ++i)
+		for (int i = 0; i < (size2 + 1); ++i)
 		{
-			int id0 = i % rhs.size;
-			int id1 = (i + 1) % rhs.size;
-			VectorT rhs_edge{rhs.Points[id0], rhs.Points[id1]};
-
-			VectorT current_ax = VectorT::cross(rhs_edge, lhs_N).normilize();
-			lhs_proj = lhs.getMinMaxProjection(current_ax);
-			rhs_proj = rhs.getMinMaxProjection(current_ax);
-			if (IntervalT::areNotIntersect(lhs_proj, rhs_proj))
+			VectorT rhs_edge = rhs.getEdge(i);
+			VectorT current_ax = VectorT::cross(rhs_edge, lhs_N);
+			if (checkAx(lhs, rhs, current_ax))
 				return false;
 		}
 		// seems all, they have intersect... (

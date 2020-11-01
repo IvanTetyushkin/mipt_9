@@ -47,7 +47,7 @@ private:
 
 public:
 	snlru_cache(size_t sz) :
-		_cache{ sz / 10, sz /10 * 3, sz / 10 * 7 } {};
+		_cache{ sz, sz,  sz } {};
 	snlru_cache(size_t hot_sz, size_t warm_sz, size_t cold_sz) :
 		_cache{ hot_sz, warm_sz, cold_sz } {};
 	bool isFull() const override final

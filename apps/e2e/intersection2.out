@@ -1,0 +1,1 @@
+Assertion failed: Points[id0] != Points[id1] && "Same point error\n"
