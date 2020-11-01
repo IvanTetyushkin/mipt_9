@@ -44,10 +44,10 @@ namespace handmade
 		{
 		public:
 			using difference_type = int;
-			using value_type = typename T;
+			using value_type = T;
 			using iterator_category = std::forward_iterator_tag;
-			using reference = typename T&;
-			using pointer = typename T*;
+			using reference = T&;
+			using pointer = T*;
 	
 			pNode current;
 			iterator(pNode c = nullptr) :

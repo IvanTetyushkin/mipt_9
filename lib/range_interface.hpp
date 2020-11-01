@@ -3,6 +3,7 @@
 // try concepts... , no cpp20...
 
 #include <iterator>
+#include <algorithm>
 namespace handmade {
 	template<typename T>
 	class interface_range

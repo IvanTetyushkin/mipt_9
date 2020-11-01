@@ -3,7 +3,9 @@ project( mipt_9 VERSION 0.001
     DESCRIPTION "Hi there"
                    LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDART 20)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 if(MSVC)
     add_compile_options(
