@@ -39,7 +39,7 @@ int main()
 		}
 	}
 	for (const auto& val : have_intersect)
-		cout << val << " ";
+		cout << (val + 1) << " ";
 	cout << "\n";
 	return 0;
 }
