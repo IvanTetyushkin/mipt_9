@@ -287,7 +287,7 @@ void half_avl_tree<T>::rebalance(half_avl_tree<T>::pNode &to_rebalance) {
     if (weight > 1) // right heavy
     {
       if (current->right && current->right->left) {
-        // rotateRight(current->right);
+         rotateRight(current->right);
         current = rotateLeft(current);
       } else {
         current = rotateLeft(current);
@@ -329,7 +329,7 @@ void half_avl_tree<T>::clear_node(half_avl_tree<T>::pNode node) {
     node->parent->left = nullptr;
     delete node;
   } else if (node->parent->right == node) {
-    node->parent->left = nullptr;
+    node->parent->right = nullptr;
     delete node;
   }
 #ifdef Debug

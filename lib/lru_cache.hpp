@@ -40,7 +40,9 @@ private:
     }
   }
   static StoreType getMemVal(const AddrType &addr) {
-    return StoreType(static_cast<StoreType>(addr - 10)); // for now....
+    constexpr int Magic = 10;
+    // for now....
+    return StoreType(static_cast<StoreType>(addr - Magic));
   }
 
 public:
@@ -66,7 +68,7 @@ public:
     assert(_cache.size() <= _sz && "Error, cache size too big");
     return (_cache.size() == _sz);
   }
-  void dump(std::ostream &out = std::cout) const final {
+  void dump(std::ostream &out) const final {
     out << "_cache:\n";
     std::for_each(std::begin(_cache), std::end(_cache),
                   [&out](const StoreType &val) { out << val << "\n"; });

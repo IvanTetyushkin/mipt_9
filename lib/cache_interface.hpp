@@ -22,5 +22,6 @@ public:
   virtual void deleteElement(const AddrType &toDel) = 0;
   virtual void dump(std::ostream &out) const = 0;
   [[nodiscard]] virtual bool check() const = 0;
+  virtual ~cache_impl() = default;
 };
 } // namespace handmade

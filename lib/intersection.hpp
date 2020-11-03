@@ -50,6 +50,7 @@ public:
     z -= p.z;
     return *this;
   }
+  ~Point() = default;
 };
 template <typename T>
 Point<T> operator+(const Point<T> &p1, const Point<T> &p2) {

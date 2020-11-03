@@ -53,13 +53,13 @@ public:
         _cache.begin(), _cache.end(),
         [](const lru_cache<AddrType, StoreType> &c) { return c.isFull(); });
   }
-  void dump(std::ostream &out = std::cout) const final {
+  void dump(std::ostream &out) const final {
     out << "hot:\n";
-    _cache[0].dump();
+    _cache[0].dump(out);
     out << "warm\n";
-    _cache[1].dump();
+    _cache[1].dump(out);
     out << "cold\n";
-    _cache[2].dump();
+    _cache[2].dump(out);
   }
   [[nodiscard]] bool check() const final { return true; }
   std::tuple<AddrType, StoreType> getTopElement() const final {
